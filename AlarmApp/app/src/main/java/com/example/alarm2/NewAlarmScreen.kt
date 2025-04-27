@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.alarmapp.NewAlarmButton
 import java.time.LocalDate
@@ -70,8 +71,14 @@ fun NewAlarmScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ToggleSetting("Hang", Icons.Filled.Notifications)
-                ToggleSetting("Rezgés", Icons.Filled.Notifications)
+                ToggleSetting(
+                    settingName = "Hang",
+                    iconResId = R.drawable.ic_music_player // Reference your drawable resource here
+                )
+                ToggleSetting(
+                    settingName = "Rezgés",
+                    iconResId = R.drawable.ic_buzz // Reference your drawable resource here
+                )
             }
             Spacer(modifier = Modifier.height(2.dp)) // Add some space between rows
 
@@ -80,8 +87,14 @@ fun NewAlarmScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                ToggleSetting("Szundi", Icons.Filled.Favorite)
-                ToggleSetting("Reggeli rutin", Icons.Filled.Check)
+                ToggleSetting(
+                    settingName = "Szundi",
+                    iconResId = R.drawable.ic_snooze // Reference your drawable resource here
+                )
+                ToggleSetting(
+                    settingName = "Reggeli Rutin",
+                    iconResId = R.drawable.ic_checked // Reference your drawable resource here
+                )
             }
         }
         SaveButton(onClick = onClickSaveButton)
@@ -205,7 +218,7 @@ fun TextButton(label: String) {
 
 
 @Composable
-fun ToggleSetting(settingName: String, icon: ImageVector) {
+fun ToggleSetting(settingName: String,iconResId: Int) {
     val toggleState = remember { mutableStateOf(false) }
 
     Box(
@@ -234,9 +247,9 @@ fun ToggleSetting(settingName: String, icon: ImageVector) {
             ) {
                 // Icon on the left
                 Icon(
-                    imageVector = icon,
+                    painter = painterResource(id = iconResId),
                     contentDescription = settingName,
-                    modifier = Modifier.size(45.dp),
+                    modifier = Modifier.size(65.dp),
                     tint = Color.Black
                 )
 
@@ -268,6 +281,7 @@ fun SaveButton(onClick: () -> Unit) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarBox(modifier: Modifier = Modifier, currentDate: LocalDate ){
     Box(
@@ -285,6 +299,7 @@ fun CalendarBox(modifier: Modifier = Modifier, currentDate: LocalDate ){
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateHeader(currentDate: LocalDate) {
     val dayOfWeek = currentDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale("hu", "HU")).capitalize()

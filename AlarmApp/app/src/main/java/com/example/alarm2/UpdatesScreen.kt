@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,11 +39,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.alarm2.data.ForecastResponse
+import com.example.alarm2.data.WeatherResponse
+import com.example.alarmapp.MainWeatherBlock
 import com.example.alarmapp.grayColor
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -50,47 +57,87 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UpdatesScreen() {
+    val apiKey = "a771bdf215c8bc458b37e13321457292"
+    val city = "Budapest"
+    val weatherData = remember { mutableStateOf<WeatherResponse?>(null) }
+    val forecastData = remember { mutableStateOf<ForecastResponse?>(null) }
+    val loading = remember { mutableStateOf(true) }
+    val detailsLazyRowState = rememberLazyListState()
+    val detailsBlockWidth = remember { mutableStateOf(200.dp) }
+
+    LaunchedEffect(key1 = Unit) {
+        try {
+            val weatherResponse = RetrofitClient.instance.getWeather(city, apiKey)
+            if (weatherResponse.isSuccessful) {
+                weatherData.value = weatherResponse.body()
+                println("Current weather loaded successfully: ${weatherData.value}")
+            } else {
+                println("Error fetching current weather: ${weatherResponse.code()} ${weatherResponse.message()}")
+                println("Error body: ${weatherResponse.errorBody()?.string()}")
+            }
+
+        } catch (e: Exception) {
+            println("Network error: ${e.localizedMessage}")
+        } finally {
+            loading.value = false
+        }
+    }
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(3.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .padding(5.dp)
     ) {
-        MainWeatherBlock()
+        if (loading.value) {
+            Text("Loading weather...")
+        } else {
+            weatherData.value?.let { weather ->
+                MainWeatherBlock(
+                    location = "${weather.name}",
+                    temperature = "${(weather.main.temp - 273.15).toInt()}°C",
+                    description = weather.weather[0].description,
+                    icon = weather.weather[0].icon
+                )
+            }
+        }
         DailyTempBlock()
         DetailsBlock()
     }
+
 }
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MainWeatherBlock() {
-    val currentDate = LocalDate.now()
-    val dayOfWeek = currentDate.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale("hu", "HU")).capitalize()
-    val dateFormatter = DateTimeFormatter.ofPattern("yyyy. M. d.")
-    val formattedDate = currentDate.format(dateFormatter)
+fun MainWeatherBlock(
+    location: String,
+    temperature: String,
+    description: String,
+    icon: String
+) {
+    val imageUrl = "https://openweathermap.org/img/wn/${icon}@2x.png"
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 30.dp, start = 5.dp, end = 5.dp)
+            .padding(top = 30.dp, start = 5.dp, end = 5.dp, bottom= 3.dp)
             .background(grayColor, shape = RoundedCornerShape(16.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "13°",
-                style = TextStyle(fontSize = 100.sp, fontWeight = FontWeight.Bold)
+                text = temperature,
+                style = TextStyle(fontSize = 90.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.width(50.dp))
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = "Weather Icon",
-                modifier = Modifier.size(120.dp),
-                tint = Color(0xFFFBBC04)
+
+            // TODO: Implement Image loading from URL (using Coil, Glide, or rememberAsyncImagePainter)
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = description,
+                modifier = Modifier.size(180.dp),
+                contentScale = ContentScale.Crop
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -99,13 +146,13 @@ fun MainWeatherBlock() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Budapest",
+                text = location,
                 style = TextStyle(fontSize = 30.sp, fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.width(50.dp))
             Text(
-                text = formattedDate,
-                style = TextStyle(fontSize = 27.sp, fontWeight = FontWeight.Medium)
+                text = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy. MM. d.")), // Dynamic date
+                style = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Medium)
             )
         }
     }

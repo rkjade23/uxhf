@@ -1,5 +1,7 @@
 package com.example.alarmapp
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -19,12 +21,15 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.alarm2.NewAlarmScreen
+import com.example.alarm2.R
 import com.example.alarm2.ToDoListScreen
 import com.example.alarm2.UpdatesScreen
 import com.example.alarmapp.HomeScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigation() {
@@ -88,10 +93,16 @@ fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
         BottomNavigationItem(
             selected = selectedTab == 2,
             onClick = { onTabSelected(2) },
-            icon = { Icon(Icons.Filled.Favorite, contentDescription = "Updates") },
+            icon = {
+                // Load the icon from resources
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_idea), // Use painterResource to load drawable
+                    contentDescription = "Updates"
+                )
+            },
             label = {
                 Text(
-                    "Updates",
+                    "Ideas",
                     modifier = Modifier.padding(bottom = 8.dp) // Add bottom padding
                 )
             }
