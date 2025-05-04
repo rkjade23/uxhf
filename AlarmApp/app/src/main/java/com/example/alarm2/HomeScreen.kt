@@ -4,49 +4,42 @@ package com.example.alarmapp
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import com.example.alarm2.NewAlarmScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import coil.compose.AsyncImage
-import com.example.alarm2.R
 import com.example.alarm2.RetrofitClient
-import com.example.alarm2.ToDoListScreen
-import com.example.alarm2.UpdatesScreen
 import com.example.alarm2.data.ForecastItem
 import com.example.alarm2.data.ForecastResponse
 import com.example.alarm2.data.WeatherResponse
+import com.example.alarm2.NewAlarmScreen
+import com.example.alarm2.ToDoListScreen
+import com.example.alarm2.UpdatesScreen
+import com.example.alarm2.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -110,21 +103,18 @@ fun HomeScreen(
                         .height(220.dp),
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    Box( // The outer Box controls the width
+                    Box(
                         modifier = Modifier
                             .width(detailsBlockWidth.value)
                             .fillMaxHeight()
-
                     ) {
-                        LazyRow( // The LazyRow enables horizontal scrolling
-                            modifier = Modifier
-                                .fillMaxWidth(),
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
                             state = detailsLazyRowState,
                             flingBehavior = rememberSnapFlingBehavior(lazyListState = detailsLazyRowState),
-
                         ) {
                             item(key = "currentWeather") {
-                                WeatherDetailsBlock( // Data for current weather
+                                WeatherDetailsBlock(
                                     weather = weather,
                                     forecastItem = null,
                                     modifier = Modifier.fillParentMaxHeight().fillMaxWidth()
@@ -132,7 +122,7 @@ fun HomeScreen(
                             }
                             forecastData.value?.list?.firstOrNull()?.let { firstForecastItem ->
                                 item(key = "forecastWeather") {
-                                    WeatherDetailsBlock( // Data for forecast
+                                    WeatherDetailsBlock(
                                         weather = null,
                                         forecastItem = firstForecastItem,
                                         modifier = Modifier.fillParentMaxHeight().fillMaxWidth()
@@ -142,8 +132,14 @@ fun HomeScreen(
                         }
                     }
                     forecastData.value?.let { forecast ->
-                        val hourlyTemperatures = forecast.list.groupBy { it.dt_txt.split(" ")[1].substringBeforeLast(":") }.map { (hourMinute, items) -> val firstItem = items.first(); HourlyData(hourMinute, (firstItem.main.temp - 273.15).toInt().toString() + "°") }.take(8)
-                        HourlyTemperatureBlock( // The other block remains outside the Box/LazyRow
+                        val hourlyTemperatures = forecast.list
+                            .groupBy { it.dt_txt.split(" ")[1].substringBeforeLast(":") }
+                            .map { (hourMinute, items) ->
+                                val firstItem = items.first()
+                                HourlyData(hourMinute, "${(firstItem.main.temp - 273.15).toInt()}°")
+                            }
+                            .take(8)
+                        HourlyTemperatureBlock(
                             hourlyData = hourlyTemperatures,
                             modifier = Modifier.weight(1f).fillMaxHeight()
                         )
@@ -151,12 +147,11 @@ fun HomeScreen(
                 }
             } ?: run { Text("Could not load weather data.") }
         }
+
         NewAlarmButton(onClick = onClickNewAlarmButton)
         AlarmList()
     }
 }
-
-
 
 val grayColor = Color(0xFFD9D9D9)
 
@@ -170,11 +165,10 @@ fun MainWeatherBlock(
     onClick: () -> Unit
 ) {
     val imageUrl = "https://openweathermap.org/img/wn/${icon}@2x.png"
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 30.dp, start = 5.dp, end = 5.dp, bottom= 3.dp)
+            .padding(top = 30.dp, start = 5.dp, end = 5.dp, bottom = 3.dp)
             .background(grayColor, shape = RoundedCornerShape(16.dp))
             .padding(16.dp)
             .clickable { onClick() },
@@ -185,20 +179,15 @@ fun MainWeatherBlock(
                 text = temperature,
                 style = TextStyle(fontSize = 90.sp, fontWeight = FontWeight.Bold)
             )
-
             Spacer(modifier = Modifier.width(50.dp))
-
-            // TODO: Implement Image loading from URL (using Coil, Glide, or rememberAsyncImagePainter)
             AsyncImage(
                 model = imageUrl,
                 contentDescription = description,
                 modifier = Modifier.size(180.dp),
-                        contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop
             )
         }
-
         Spacer(modifier = Modifier.height(20.dp))
-
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
@@ -209,13 +198,12 @@ fun MainWeatherBlock(
             )
             Spacer(modifier = Modifier.width(50.dp))
             Text(
-                text = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy. MM. d.")), // Dynamic date
+                text = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy. MM. dd.")),
                 style = TextStyle(fontSize = 25.sp, fontWeight = FontWeight.Medium)
             )
         }
     }
 }
-
 
 @Composable
 fun WeatherDetailsBlock(
@@ -231,8 +219,11 @@ fun WeatherDetailsBlock(
             .padding(8.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        val title =
-            if (weather != null) "Jelenlegi részletek" else if (forecastItem != null) "Következő részletek" else "Részletek"
+        val title = when {
+            weather != null -> "Jelenlegi részletek"
+            forecastItem != null -> "Következő részletek"
+            else -> "Részletek"
+        }
         Text(
             text = title,
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
@@ -242,14 +233,14 @@ fun WeatherDetailsBlock(
         if (weather != null) {
             weather.main?.humidity?.let { humidity ->
                 DetailRow(
-                    icon = painterResource(id = R.drawable.ic_humidity), // Directly get the Painter
+                    icon = painterResource(id = R.drawable.ic_humidity),
                     label = "Páratartalom",
-                    value = "${weather.main.humidity}%"
+                    value = "${humidity}%"
                 )
             }
             weather.wind?.let { wind ->
                 DetailRow(
-                    icon = painterResource(id = R.drawable.ic_wind), // Directly get the Painter
+                    icon = painterResource(id = R.drawable.ic_wind),
                     label = "Szélerősség",
                     value = "${weather.main.humidity}%"
                 )
@@ -267,7 +258,6 @@ fun WeatherDetailsBlock(
                     .padding(top = 8.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
-
             ) {
                 Text(
                     text = "Későbbi adatokért lapozz",
@@ -331,17 +321,16 @@ fun DetailRow(icon: Painter, label: String, value: String) {
     }
 }
 
-
 data class HourlyData(val hour: String, val temperature: String)
 
 @Composable
 fun HourlyTemperatureBlock(
-    hourlyData: List<HourlyData>, // Now accepts a list of HourlyData
+    hourlyData: List<HourlyData>,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
-            .padding(top=4.dp, bottom= 5.dp, end= 5.dp)
+            .padding(top = 4.dp, bottom = 5.dp, end = 5.dp)
             .background(grayColor, shape = RoundedCornerShape(16.dp))
             .padding(5.dp),
         horizontalAlignment = Alignment.Start
@@ -360,14 +349,12 @@ fun HourlyTemperatureBlock(
     }
 }
 
-
 @Composable
 fun HourlyTemperature(hour: String, temperature: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .padding(vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = hour, style = TextStyle(fontSize = 20.sp))
@@ -378,58 +365,108 @@ fun HourlyTemperature(hour: String, temperature: String) {
 @Composable
 fun NewAlarmButton(onClick: () -> Unit) {
     Button(
-        onClick = onClick, // Navigate to the new alarm screen when clicked
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 5.dp, bottom= 3.dp, end= 5.dp),
-                shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = grayColor) // Purple button color
+            .padding(start = 5.dp, bottom = 3.dp, end = 5.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = grayColor)
     ) {
         Icon(
-            imageVector = Icons.Default.Add, // '+' icon
+            imageVector = Icons.Default.Add,
             contentDescription = "New Alarm",
-            modifier = Modifier
-                .size(35.dp) // Icon size
+            modifier = Modifier.size(35.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = "Új ébresztő", style = TextStyle(fontSize = 30.sp, color = Color.Black))
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AlarmList (){
+fun AlarmList() {
+    // Use a mutableStateList to track alarms so we can remove them
+    val alarms = remember { mutableStateListOf<String>().apply { repeat(3) { add("7:30") } } }
+
     LazyColumn(
-        modifier = Modifier.fillMaxHeight().padding(top= 5.dp, bottom = 45.dp)
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(top = 5.dp, bottom = 45.dp)
     ) {
-        items(15) { index ->
-            AlarmItem(hour = "7:30", isEnabled = true)
+        itemsIndexed(alarms) { index, hour ->
+            AlarmItem(
+                hour = hour,
+                isEnabled = true,
+                onDelete = { alarms.removeAt(index) }
+            )
         }
     }
 }
-@Composable
-fun AlarmItem(hour: String, isEnabled: Boolean) {
-    // Use remember and mutableStateOf to make the toggle reactive
-    val toggleState = remember { mutableStateOf(isEnabled) } // Initialize the state for the switch
 
-    // Wrapping each item in a Box to give it a gray background
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun AlarmItem(
+    hour: String,
+    isEnabled: Boolean,
+    onDelete: () -> Unit
+) {
+    val toggleState = remember { mutableStateOf(isEnabled) }
+    val showDialog = remember { mutableStateOf(false) }
+    val onDismiss = { showDialog.value = false }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 3.dp, vertical = 3.dp)
-            .background(grayColor, shape = RoundedCornerShape(16.dp)) // Gray background with rounded corners
-            .padding(12.dp) // Padding inside the item
+            .background(grayColor, shape = RoundedCornerShape(16.dp))
+            .combinedClickable(
+                onClick = { /* no-op or could toggle enable state here */ },
+                onLongClick = { showDialog.value = true }
+            )
+            .padding(12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(text = hour, style = TextStyle(fontSize = 30.sp))
-            // Bind the Switch state to the toggleState variable
             Switch(
-                checked = toggleState.value, // Access the value of the state
-                onCheckedChange = { toggleState.value = it } // Update the state when the switch is toggled
+                checked = toggleState.value,
+                onCheckedChange = { toggleState.value = it }
             )
         }
     }
-}
 
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Feladat törlése") },
+            text = { Text("Biztos törölni szeretnéd a feladatot?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xFF2698CC),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Törlés")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color(0xFF2698CC),
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Mégse")
+                }
+            }
+        )
+    }
+}

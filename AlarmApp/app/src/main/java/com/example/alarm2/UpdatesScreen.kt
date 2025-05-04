@@ -232,7 +232,7 @@ fun DetailItem(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(236.dp)
+            .height(220.dp)
             .background(grayColor, shape = RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
